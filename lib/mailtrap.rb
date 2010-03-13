@@ -1,8 +1,4 @@
-
-require 'rubygems'
-require 'daemons'
 require 'socket'
-require 'trollop'
 
 #
 # Mailtrap creates a TCP server that listens on a specified port for SMTP
@@ -11,16 +7,15 @@ require 'trollop'
 #
 # Based on Matt Mower's original; slightly modified by Gwyn Morfey to write messages
 # as separate files so that we can serve them out by POP3. 
+#
+# Stripped down to be a simple command-line script by Greg Mefford
 class Mailtrap
-  VERSION = '0.2.2'
   
-  # Create a new Mailtrap on the specified host:port. If once it true it
-  # will listen for one message then exit. Specify the msgdir where messages
-  # are written.
-  def initialize( host, port, once, msgfile, msgdir )
+  # Create a new Mailtrap on the specified host:port. 
+  # Specify the msgdir where message are written.
+  def initialize( host, port, msgfile, msgdir )
     @host = host
     @port = port
-    @once = once
     @msgfile = msgfile
     @msgdir = msgdir
     @msgnum = 0
@@ -50,8 +45,6 @@ class Mailtrap
       rescue Exception => e
         puts "Erk! #{e.message}"        
       end
-      
-      break if @once
     end    
   end
   
@@ -136,5 +129,6 @@ class Mailtrap
     write( from, to_list, lines.join( "\n" ) )
     
   end
-  
 end
+
+server = Mailtrap.new( '0.0.0.0', 25, 'msgfile', 'msgdir' )
