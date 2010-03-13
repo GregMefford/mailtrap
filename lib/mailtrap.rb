@@ -3,26 +3,17 @@ require 'socket'
 #
 # Mailtrap creates a TCP server that listens on a specified port for SMTP
 # clients. Accepts the connection and talks just enough of the SMTP protocol
-# for them to deliver a message which it writes to disk.
-#
-# Based on Matt Mower's original; slightly modified by Gwyn Morfey to write messages
-# as separate files so that we can serve them out by POP3. 
+# for them to deliver a message
 #
 # Stripped down to be a simple command-line script by Greg Mefford
 class Mailtrap
   
   # Create a new Mailtrap on the specified host:port. 
-  # Specify the msgdir where message are written.
-  def initialize( host, port, msgfile, msgdir )
+  def initialize( host, port )
     @host = host
     @port = port
-    @msgfile = msgfile
-    @msgdir = msgdir
-    @msgnum = 0
     
-    File.open( @msgfile, "a" ) do |file|
-      file.puts "\n* Mailtrap started at #{@host}:#{port}\n"
-    end
+    puts "\n* Mailtrap started at #{@host}:#{port}\n"
     
     service = TCPServer.new( @host, @port )
     accept( service )
@@ -43,40 +34,27 @@ class Mailtrap
       begin
         serve( session )
       rescue Exception => e
-        puts "Erk! #{e.message}"        
+        puts "Error: #{e.message}"        
       end
     end    
   end
   
-  # Write a plain text dump of the incoming email to a text
-  # file. The file will be in the @msgdir folder and will
-  # be called smtp0001.msg, smtp0002.msg, and so on.
-  def write( from, to_list, message )
-    @msgnum += 1
-    
+  # Plain text dump of the incoming email
+  def handle_message( from, to_list, message )
     # Strip SMTP commands from To: and From:
     from.gsub!( /MAIL FROM:\s*/, "" )
     to_list = to_list.map { |to| to.gsub( /RCPT TO:\s*/, "" ) }
-    
-    # Append to the end of the messages file
-    File.open( @msgfile, "a" ) do |file|
-      file.puts "* Message begins"
-      file.puts "From: #{from}"
-      file.puts "To: #{to_list.join(", ")}"
-      file.puts "Body:"
-      file.puts message
-      file.puts "\n* Message ends"
-    end
-    
-    #Write into msgs dir, also - Mailshovel needs this.
-    Dir.mkdir(@msgdir) if !File.exist?(@msgdir)
-    File.open(File.join(@msgdir,Time.now.to_i.to_s  + "_" + sprintf("%03.0f",@msgnum) + ".txt"),"w") do |file|
-      file.puts message
-    end
+
+    puts "* Message begins"
+    puts "  From: #{from}"
+    puts "  To: #{to_list.join(", ")}"
+    puts "  Body:"
+    puts message
+    puts "\n* Message ends"
+
   end
   
-  # Talk pidgeon-SMTP to the client to get them to hand over the message
-  # and go away.
+  # Talk enough SMTP to get the message from the client
   def serve( connection )
     connection.puts( "220 #{@host} MailTrap ready ESTMP" )
     helo = connection.get_line # whoever they are
@@ -84,7 +62,7 @@ class Mailtrap
     
     if helo =~ /^EHLO\s+/
       puts "Seen an EHLO"
-      connection.puts "250-#{@host} offers just ONE extension my pretty"
+      connection.puts "250-#{@host}"
       connection.puts "250 HELP"
     end
     
@@ -124,11 +102,11 @@ class Mailtrap
     connection.gets # Quit
     connection.puts "221 Seeya"
     connection.close
-    puts "And we're done with that bozo!"
+    puts "===================================="
 
-    write( from, to_list, lines.join( "\n" ) )
+    handle_message( from, to_list, lines.join( "\n" ) )
     
   end
 end
 
-server = Mailtrap.new( '0.0.0.0', 25, 'msgfile', 'msgdir' )
+server = Mailtrap.new( '0.0.0.0', 25 )

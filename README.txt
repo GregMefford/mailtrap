@@ -2,55 +2,27 @@ mailtrap
     by Matt Mower <self@mattmower.com>
     http://matt.blogs.it/
 
-    modified (and Mailshovel added) by Gwyn Morfey <mail@gwynmorfey.com>
-
 == DESCRIPTION:
 
-Mailtrap is a mock SMTP server for use in Rails development. This package also includes Mailshovel, a mock POP3 server that works with Mailtrap. You can configure your mail client (eg Mail.App) to connect to Mailshovel, and then manage messages that ActionMailer has "sent" using its GUI.
+Mailtrap is a mock SMTP server for use in Rails development.
 
-Mailtrap waits on your chosen port for a client to connect and talks _just enough_ SMTP protocol for ActionMailer to successfully deliver its message.
+This version is stripped down to a bare-bones command-line mail receiver.
 
-Mailtrap makes *no* attempt to actually deliver messages and, instead, writes them into a series of files which are read by Mailshovel.
-
-You can configure the hostname (default: localhost) and port (default: 2525) for the server and also where the messages get written (default: /var/tmp/mailtrap.log).
-	
 == FEATURES/PROBLEMS:
 
 * Lightweight, no setup
-* Runs as a daemon with start, stop, etc..
 * Tested with ActionMailer's SMTP delivery method
 * Very, very, dumb ... might not work with an arbitrary SMTP client
 
 == SYNOPSIS:
 
-To use the defaults host:localhost, port:2525 and port:1100, file:/var/log/mailtrap.log
-
-* mailtrap start
-
-This will start both mailtrap and mailshovel.
-
-Customise startup:
-
-* sudo mailtrap start --host my.host --smtp_port 25 --pop3_port 110 --once --file=/var/log/messages.txt --msg_dir=/tmp/msgs
-(sudo because you want to use restricted port 25)
-
-For more info:
-
-* mailtrap --help (to see Daemonization options)
-* mailtrap start --help (to see Mailtrap options)
-
 == REQUIREMENTS:
 
-* Hoe rubygem
-* Rubygems rubygem
-* Daemons rubygem
-* Trollop rubygem
-
-All these are automatically installed if you use gem install -y
+* Just standard Ruby library
 
 == INSTALL:
 
-* sudo gem install -y mailshovel
+* None needed
 
 == LICENSE:
 
